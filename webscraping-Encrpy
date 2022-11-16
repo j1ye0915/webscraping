@@ -1,0 +1,59 @@
+from cgitb import text
+from urllib import request
+from urllib.request import urlopen, Request
+from bs4 import BeautifulSoup
+import keys2
+from twilio.rest import Client
+
+
+url = 'https://www.coingecko.com/'
+# Request in case 404 Forbidden error
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}
+
+
+req = Request(url,headers=headers)
+
+webpage =  urlopen(req).read()
+
+soup = BeautifulSoup(webpage,"html.parser")
+
+table_rows = soup.find("table",{'class':'table-scrollable'}).find('tbody').findAll('tr')
+
+client = Client(keys2.accountSID,keys2.authToken)
+
+TwilioNumber = "+12548700820"
+myNumber = "+12547152277"
+
+#print(len(table_rows))
+#('a',{'class':'tw-flex tw-justify-end tw-items-center'})
+#print(table_rows[0].find({'class':'lg:tw-flex font-bold tw-items-center tw-justify-between'}))
+#print((table_rows[0].text))
+BTCalert = ''
+ETHalert = ''
+
+for x in range(5):
+    td = table_rows[x].findAll('td')
+    name = td[2].text.replace('\n','').replace(' ','')
+    price = td[3].text.replace('\n','')
+    price1 = price.replace('$','').replace(',','')
+    changeRateIn24 = td[5].text.replace('\n','')
+    changeRateIn241 = changeRateIn24.replace('%','')
+
+    correspondePrice = float(price1) / (1 + float(changeRateIn241) / 100)
+
+    print(f"Name: {name}")
+    print(f"Price: {price}")
+    print(f"24hrsChangeRate: {changeRateIn24}")
+    print(f"Corresponding Price: {correspondePrice}")
+
+    if name == 'BitcoinBTC' and float(price1) < 40000:
+        BTCalert = 'Bitcoin price is below 40000 now !'
+        textmsg = client.messages.create(to=myNumber,from_=TwilioNumber,body=BTCalert)
+    elif name == 'EthereumETH' and float(price1) < 3000:
+        ETHalert = 'Ethereum price is below 3000 now !'
+        print('Ethereum price is below 3000 now !\n')
+        textmsg2 = client.messages.create(to=myNumber,from_=TwilioNumber,body=ETHalert)
+    print()
+
+
+print(textmsg.status)

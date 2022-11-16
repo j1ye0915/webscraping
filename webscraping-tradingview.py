@@ -1,3 +1,4 @@
+from turtle import tilt
 from urllib.request import urlopen, Request
 from bs4 import BeautifulSoup
 
@@ -13,12 +14,43 @@ from bs4 import BeautifulSoup
 
 
 url = 'https://www.tradingview.com/markets/stocks-usa/market-movers-gainers/'
+url='https://webull.com/quote/us/gainers'
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3'}
 
-		
+req = Request(url,headers=headers)
 
+webpage = urlopen(req).read()
 
+soup = BeautifulSoup(webpage, "html.parser")
 
+tilte = soup.title
+print(tilte.text)
+
+tablecells = soup.findAll("div",attrs={"class":"table-cell"})
+
+print(tablecells[0].text)
+
+for cell in tablecells[:7]:
+    print(cell.text)
+
+counter = 1
+
+for x in range(5):
+    name = tablecells[counter].text
+    change = tablecells[counter+2].text
+    high = float(tablecells[counter+4].text)
+    low = float(tablecells[counter+5].text)
+
+    calc_change = round(((high - low)/low) * 100,2)
+
+    print(name)
+    print(f"%change on webpage: {change}")
+    print(f"high: {high}")
+    print(f"low: {low}")
+    print(f"calculate change: {calc_change}%")
+    print("\n")
+
+    counter += 11
 
 
 
